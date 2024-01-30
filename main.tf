@@ -109,7 +109,8 @@ resource aws_iam_role_policy sfn {
       "Action": [
         "ecs:RunTask",
         "ecs:StopTask",
-        "ecs:DescribeTasks"
+        "ecs:DescribeTasks",
+        "ecs:TagResource"
       ],
       "Resource": [
           "*"
