@@ -19,6 +19,11 @@ def lambda_handler(event:, context:)
     
     app_containr[:port_mappings] = []
     
+    app_containr[:log_configuration] ||= {}
+    app_containr[:log_configuration][:log_driver] = "awslogs"
+    app_containr[:log_configuration][:options] ||= {}
+    app_containr[:log_configuration][:options]["awslogs-group"] = ENV["MigrateLogGroupName"]
+    app_containr[:log_configuration][:options]["awslogs-region"] = "ap-northeast-1"
     app_containr[:log_configuration][:options]["awslogs-stream-prefix"] = "migrate_task"
     
     app_containr[:command] = ENV["MigrateCommand"].split(",")

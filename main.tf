@@ -1,6 +1,6 @@
-provider archive {}
+provider "archive" {}
 
-resource aws_sfn_state_machine main {
+resource "aws_sfn_state_machine" "main" {
   # suffix
   name       = format("db-migrate-state-machine-%s-%s-%s", var.project_name, var.app_name, var.environment)
   role_arn   = aws_iam_role.sfn.arn
@@ -49,7 +49,7 @@ EOF
   tags       = var.tags
 }
 
-resource aws_iam_role sfn {
+resource "aws_iam_role" "sfn" {
   name = format("DbMigrateState%s%s%sRole", local.upper_project_name, title(var.app_name), title(var.environment))
 
   assume_role_policy = <<EOF
@@ -70,7 +70,7 @@ EOF
   tags = var.tags
 }
 
-resource aws_iam_role_policy sfn {
+resource "aws_iam_role_policy" "sfn" {
   role   = aws_iam_role.sfn.id
   policy = <<POLICY
 {
@@ -150,7 +150,7 @@ resource aws_iam_role_policy sfn {
 POLICY
 }
 
-resource aws_iam_role lambda {
+resource "aws_iam_role" "lambda" {
   name = format("DbMigrateLambda%s%s%sRole", local.upper_project_name, title(var.app_name), title(var.environment))
 
   assume_role_policy = <<EOF
@@ -171,23 +171,23 @@ EOF
   tags = var.tags
 }
 
-resource aws_iam_role_policy_attachment lambda {
+resource "aws_iam_role_policy_attachment" "lambda" {
   role       = aws_iam_role.lambda.id
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-resource aws_iam_role_policy_attachment ecs {
+resource "aws_iam_role_policy_attachment" "ecs" {
   role       = aws_iam_role.lambda.id
   policy_arn = "arn:aws:iam::aws:policy/AmazonECS_FullAccess"
 }
 
-data archive_file lambda_task {
+data "archive_file" "lambda_task" {
   type        = "zip"
   source_dir  = format("%s/lambda/gen_migrate_task", path.module)
   output_path = format("%s/lambda/archive/lambda_function.zip", path.module)
 }
 
-resource aws_lambda_function function {
+resource "aws_lambda_function" "function" {
   function_name = format("GenMigrateTask%s%s%s", var.project_name, var.app_name, var.environment)
   handler       = "lambda_function.lambda_handler"
   role          = aws_iam_role.lambda.arn
@@ -203,6 +203,7 @@ resource aws_lambda_function function {
       ImageTag              = var.image_tag
       MigrateCommand        = var.migrate_command
       MigrateTaskDefinition = var.migrate_task_definition
+      MigrateLogGroupName   = var.migrate_log_group_name
     }
   }
 
@@ -213,8 +214,8 @@ resource aws_lambda_function function {
 
 
 # logs
-resource aws_cloudwatch_log_group lambda {
-  name = format("/aws/lambda/%s",  format("GenMigrateTask%s%s%s", var.project_name, var.app_name, var.environment))
+resource "aws_cloudwatch_log_group" "lambda" {
+  name              = format("/aws/lambda/%s", format("GenMigrateTask%s%s%s", var.project_name, var.app_name, var.environment))
   retention_in_days = 60
 
   tags = var.tags
