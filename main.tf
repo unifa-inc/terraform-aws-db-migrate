@@ -191,7 +191,7 @@ resource "aws_lambda_function" "function" {
   function_name = format("GenMigrateTask%s%s%s", var.project_name, var.app_name, var.environment)
   handler       = "lambda_function.lambda_handler"
   role          = aws_iam_role.lambda.arn
-  runtime       = "ruby3.2"
+  runtime       = "ruby3.4"
 
   filename         = data.archive_file.lambda_task.output_path
   source_code_hash = data.archive_file.lambda_task.output_base64sha256
