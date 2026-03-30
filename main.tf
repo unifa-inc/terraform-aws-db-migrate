@@ -196,6 +196,7 @@ resource "aws_lambda_function" "function" {
   filename         = data.archive_file.lambda_task.output_path
   source_code_hash = data.archive_file.lambda_task.output_base64sha256
   architectures    = ["arm64"]
+  timeout          = 30
 
   environment {
     variables = {
